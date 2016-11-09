@@ -16,7 +16,6 @@ endif()
 # Create YARP-indipendent library, based on https://github.com/TRECVT/ros_kvh1750
 add_subdirectory(vt_kvh17xx)
 
-
 # Find YARP and include the CMake code to compile plugins
 find_package(YARP REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})

@@ -4,109 +4,92 @@
  * CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
  */
 
-#include "forcetorqueDriverExample.h"
+#include "kvh17xx.h"
 
 #include <cassert>
 
 #include <yarp/os/LockGuard.h>
 
-yarp::dev::forcetorqueDriverExample::forcetorqueDriverExample(): m_sensorReadings(6),
-                                                                 m_status(yarp::dev::IAnalogSensor::AS_OK)
+#define NUMBER_OF_CHANNELS_IN_YARP_IMU 3
+
+yarp::dev::kvh17xx::kvh17xx(): m_rpyAnglesInDeg(3),
+                               m_rawAccelerometerOutputInMForSsquare(3),
+                               m_rawGyroOutputInDegForS(3),
+                               m_rawMagnetometerOutputInGauss(3),
+                               m_sensorReading(NUMBER_OF_CHANNELS_IN_YARP_IMU),
+                               m_status(false)
 {
-    // We fill the sensor readings only once in the constructor in this example
-    // In reality, the buffer will be updated once a new measurement is avaible
-    
-    // Set force on x,y,z axis 
-    m_sensorReadings[0] = 1.0;
-    m_sensorReadings[1] = 2.0;
-    m_sensorReadings[2] = 3.0;
-    
-    // Set torque on x,y,z axis 
-    m_sensorReadings[3] = 0.1;
-    m_sensorReadings[4] = 0.2;
-    m_sensorReadings[5] = 0.3;
-    
-    // When you update the sensor readings, you also need to update the timestamp
-    m_timestamp.update();
-    
+
 }
 
-yarp::dev::forcetorqueDriverExample::~forcetorqueDriverExample()
+yarp::dev::kvh17xx::~kvh17xx()
 {
 }
 
-bool yarp::dev::forcetorqueDriverExample::open(yarp::os::Searchable &config)
+bool yarp::dev::kvh17xx::open(yarp::os::Searchable &config)
 {
-    yarp::os::LockGuard guard(m_mutex);
-    
-    // config should be parsed for the options of the device 
+    yarp::os::LockGuard guard(m_externalBuffersMutex);
+
     return true;
 }
 
-bool yarp::dev::forcetorqueDriverExample::close()
+bool yarp::dev::kvh17xx::close()
 {
-    yarp::os::LockGuard guard(m_mutex);
+    yarp::os::LockGuard guard(m_externalBuffersMutex);
+
+    isClosing.test_and_set();
     
     return true;
 }
 
-yarp::dev::forcetorqueDriverExample::forcetorqueDriverExample(const yarp::dev::forcetorqueDriverExample& /*other*/)
+yarp::dev::kvh17xx::kvh17xx(const yarp::dev::kvh17xx& /*other*/)
 {
     // Copy is disabled 
     assert(false);
 }
 
-int yarp::dev::forcetorqueDriverExample::read(yarp::sig::Vector &out)
+yarp::dev::kvh17xx& yarp::dev::kvh17xx::operator=(const yarp::dev::kvh17xx& other)
 {
-    yarp::os::LockGuard guard(m_mutex);
+    assert(false);
+}
+
+bool yarp::dev::kvh17xx::read(yarp::sig::Vector &out)
+{
+    yarp::os::LockGuard guard(m_externalBuffersMutex);
     
-    out = m_sensorReadings;
-    
-    return m_status;
-}
-
-int yarp::dev::forcetorqueDriverExample::getState(int /*ch*/)
-{
-    yarp::os::LockGuard guard(m_mutex);
-        
-    return m_status;
-}
-
-int yarp::dev::forcetorqueDriverExample::getChannels()
-{
-    return 6;
-}
-
-int yarp::dev::forcetorqueDriverExample::calibrateSensor()
-{
-    yarp::os::LockGuard guard(m_mutex);
+    out = m_sensorReading;
     
     return m_status;
 }
 
-int yarp::dev::forcetorqueDriverExample::calibrateSensor(const yarp::sig::Vector& /*value*/)
+void yarp::dev::kvh17xx::fillBuffersFromSensor()
 {
-    yarp::os::LockGuard guard(m_mutex);
-    
-    return m_status;
+
+    return;
 }
 
-int yarp::dev::forcetorqueDriverExample::calibrateChannel(int /*ch*/)
+bool yarp::dev::kvh17xx::calibrate(int ch, double v)
 {
-    yarp::os::LockGuard guard(m_mutex);
-    
-    return m_status;
+    return false;
 }
 
-int yarp::dev::forcetorqueDriverExample::calibrateChannel(int /*ch*/, double /*v*/)
+bool yarp::dev::kvh17xx::getChannels(int* nc)
 {
-    yarp::os::LockGuard guard(m_mutex);
-    
-    return m_status;
+    if( nc )
+    {
+        *nc = NUMBER_OF_CHANNELS_IN_YARP_IMU;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
-yarp::os::Stamp yarp::dev::forcetorqueDriverExample::getLastInputStamp()
+yarp::os::Stamp yarp::dev::kvh17xx::getLastInputStamp()
 {
+    yarp::os::LockGuard guard(m_externalBuffersMutex);
+
     return m_timestamp;
 }
 
