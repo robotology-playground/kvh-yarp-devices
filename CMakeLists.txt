@@ -2,11 +2,15 @@
 # Authors: Silvio Traversaro <silvio.traversaro@iit.it>
 # CopyPolicy: Released under the terms of the GNU LGPL v2.0+
 
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.1)
 project(kvh-yarp-devices)
+
+# Enable explicitly C++11 support
+set(CMAKE_CXX_STANDARD 11)
 
 # Create YARP-indipendent library, based on https://github.com/TRECVT/ros_kvh1750
 add_subdirectory(vt_kvh17xx)
+
 
 # Find YARP and include the CMake code to compile plugins
 find_package(YARP REQUIRED)
