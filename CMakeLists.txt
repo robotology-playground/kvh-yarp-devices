@@ -8,6 +8,11 @@ project(kvh-yarp-devices)
 # Enable explicitly C++11 support
 set(CMAKE_CXX_STANDARD 11)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    message(FATAL_ERROR "kvh drivers support do not support macOS or Windows systems at the moment. ")
+endif()
+
 # Create YARP-indipendent library, based on https://github.com/TRECVT/ros_kvh1750
 add_subdirectory(vt_kvh17xx)
 
