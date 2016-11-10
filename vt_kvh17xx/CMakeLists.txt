@@ -11,6 +11,10 @@
 find_package(serial REQUIRED)
 find_package(Boost REQUIRED)
 
+# Make sure that the static library can be linked by a
+# shared/dynamically loadable library
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_library(vt_kvh17xx STATIC
             src/iomodule.cpp
             src/types.cpp
