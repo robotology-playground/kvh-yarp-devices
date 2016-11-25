@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<robot name="ftSensorExample">
-
-    <device type="forcetorqueDriverExample" name="ftSens">
+<robot name="kvhOnSeesaw">
+    <device name="kvh_wrapper" type="inertial">
+        <param name="name">  /seesaw  </param>
+        <param name="subdevice">  kvh17xx  </param>
+        <!--
+            Not supported at the moment, it is hardcode in code as /dev/ttyUSB0 .
+            <param name="serial">  /dev/ttyUSB0   </param>
+         -->
     </device>
-    <device name="left_arm_as_wrapper" type="analogServer">
-        <param name="period"> 10           </param>
-        <param name="name">   /ft/analog:o </param>
-        
-        <action phase="startup" level="5" type="attach">
-            <paramlist name="networks">
-                 <elem name="FirstStrain">  ftSens </elem>
-            </paramlist>
-        </action>
-
-        <action phase="shutdown" level="5" type="detach" />
-    </device>
-  
-</robot> 
+</robot>

@@ -10,13 +10,14 @@
 #include <cmath>
 
 #include <yarp/os/LockGuard.h>
+#include <yarp/os/Time.h>
 
 #include <kvh1750/iomodule.h>
 #include <kvh1750/tov_file.h>
 #include <kvh1750/imu.h>
 
 
-#define NUMBER_OF_CHANNELS_IN_YARP_IMU 3
+#define NUMBER_OF_CHANNELS_IN_YARP_IMU 12
 #define KVH_RAD2DEG (180.0/M_PI)
 
 yarp::dev::kvh17xx::kvh17xx(): m_rawAccelerometerOutputInMForSsquare(3),
@@ -60,28 +61,42 @@ bool yarp::dev::kvh17xx::open(yarp::os::Searchable &config)
         m_imu.reset(nullptr);
         return false;
     }
+    
+    /*
+     For some reason, this check is not working.
+     Currently the device seems to be working fine and set_angle_units seems to
+     be working, but we should eventually get it to work.
+     Perhaps there could be a problem in the C++ library that was written for
+     KVH 1750 and the fact that we use a KVH1775, this needs to be investigated
+     traversaro, Nov 2016
 
-    bool is_using_delta_angles = true;
-    bool query_successfull = m_imu->query_angle_units(is_using_delta_angles);
+    bool is_using_delta_angles = false;
+    bool query_successfull = false;
+
+    query_successfull = m_imu->query_angle_units(is_using_delta_angles);
 
     if( !query_successfull || is_using_delta_angles )
     {
-        yError("kvh17xx: could not set imu to send angular velocity, exiting.");
+        yError("kvh17xx: set imu to send angular velocity, but the imu ignored the settings, exiting (query_successfull %d, is_using_delta_angles: %d",query_successfull,is_using_delta_angles);
         m_imu.reset(nullptr);
         return false;
     }
+    */
 
     // Check the rate
     int rate_in_hz = -1;
-    query_successfull = m_imu->query_data_rate(rate_in_hz);
-    if( !query_successfull || is_using_delta_angles )
+    bool rate_query_successfull = m_imu->query_data_rate(rate_in_hz);
+    if( !rate_query_successfull )
     {
-        yError("kvh17xx: could not get rate from IMU, exiting.");
-        m_imu.reset(nullptr);
-        return false;
+        // traversaro, Nov 2016 : this check seems to be working
+        // but after some time it seems to fail, so just keep it
+        // as a warning
+        yWarning("kvh17xx: could not get rate from IMU, exiting.");
     }
-    yInfo("kvh17xx: the data rate is %d hz",rate_in_hz);
-
+    else
+    {
+        yInfo("kvh17xx: the data rate is %d hz",rate_in_hz);
+    }
 
     // Create thread that continuously run fillBuffersFromSensor until close is called
     m_isClosing = false;
@@ -114,13 +129,13 @@ bool yarp::dev::kvh17xx::close()
     m_readingThread.join();
 
     m_isOpened = false;
-    
+
     return true;
 }
 
 yarp::dev::kvh17xx::kvh17xx(const yarp::dev::kvh17xx& /*other*/)
 {
-    // Copy is disabled 
+    // Copy is disabled
     assert(false);
 }
 
@@ -132,9 +147,9 @@ yarp::dev::kvh17xx& yarp::dev::kvh17xx::operator=(const yarp::dev::kvh17xx& othe
 bool yarp::dev::kvh17xx::read(yarp::sig::Vector &out)
 {
     yarp::os::LockGuard guard(m_externalBuffersMutex);
-    
+
     out = m_sensorReading;
-    
+
     return m_status;
 }
 
@@ -144,7 +159,9 @@ void yarp::dev::kvh17xx::readingLoop()
     {
         kvh::Message msg;
 
-        switch(m_imu->read(msg))
+        kvh::IMU1750::ParseResults res = m_imu->read(msg);
+
+        switch(res)
         {
         case kvh::IMU1750::VALID:
             if( msg.valid() )
@@ -212,6 +229,10 @@ void yarp::dev::kvh17xx::fillBuffersFromSensorMsg(const kvh::Message& msg)
     m_sensorReading[9]  = 0.0;
     m_sensorReading[10] = 0.0;
     m_sensorReading[11] = 0.0;
+
+    // We could use the timestamp coming from the sensor, but for now we
+    // just update a local timestamp whenever we read some data
+    m_timestamp.update();
 }
 
 
