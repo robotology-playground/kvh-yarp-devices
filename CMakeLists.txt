@@ -2,11 +2,16 @@
 # Authors: Silvio Traversaro <silvio.traversaro@iit.it>
 # CopyPolicy: Released under the terms of the GNU LGPL v2.0+
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8.12)
 project(kvh-yarp-devices)
 
-# Enable explicitly C++11 support
+# Enable explicitly C++11 support 
+# (only supported in CMake >= 3.1, fallback to manually specify the flags otherwise)
 set(CMAKE_CXX_STANDARD 11)
+if(CMAKE_VERSION VERSION_LESS 3.1)
+    add_definitions(-std=c++11)
+endif()
+
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR
    ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
