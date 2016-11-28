@@ -23,8 +23,9 @@ add_library(vt_kvh17xx STATIC
             src/bit_message.cpp)
             
 target_include_directories(vt_kvh17xx PUBLIC include
-                                      PRIVATE ${Boost_INCLUDE_DIRS}
-                                              ${serial_INCLUDE_DIRS})
+                                             ${serial_INCLUDE_DIRS}
+                                      PRIVATE ${Boost_INCLUDE_DIRS})
+
 
 target_link_libraries(vt_kvh17xx PRIVATE ${serial_LIBRARIES})
 
