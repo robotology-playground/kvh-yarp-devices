@@ -2,15 +2,15 @@
 # Authors: Silvio Traversaro
 # CopyPolicy: Released under the terms of the GNU LGPL v2.1+
 
-# Compile the plugins by default
-set(COMPILE_BY_DEFAULT ON)
+# Compile the plugins
 yarp_prepare_device(kvh17xx TYPE yarp::dev::kvh17xx
                             INCLUDE kvh17xx.h
+                            DEFAULT ON
                             WRAPPER inertial)
 
 yarp_add_plugin(kvh17xx kvh17xx.cpp kvh17xx.h)
 
-include_directories(${YARP_INCLUDE_DIRS})
+include_directories(${YARP_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(kvh17xx ${YARP_LIBRARIES} vt_kvh17xx)  
 yarp_install(TARGETS kvh17xx
              COMPONENT runtime
